@@ -7,30 +7,32 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class SelfAvoidingRandomWalk implements Callable<Map<Integer, Double>> {
+public class SelfAvoidingRandomWalk2DGrid implements Callable<Map<Integer, Double>> {
 
     private final Map<Integer, Double> randomWalks;
     private final int[][] directions = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
     private final Random random = new Random();
     private final Long limit;
+    private final Integer numberOfSteps;
 
-    public SelfAvoidingRandomWalk(Long limit) {
+    public SelfAvoidingRandomWalk2DGrid(Long limit, Integer numberOfSteps) {
         this.limit = limit;
         this.randomWalks = new ConcurrentHashMap<>();
+        this.numberOfSteps = numberOfSteps;
     }
 
-    public void pseudoRandomWalkWith40Step() {
+    public void calculateEndToEndDistance() {
 
         for (int i = 0; i < this.limit; i++) {
             Set<String> isVisited = new HashSet<>();
             int x = 0, y = 0;
-            for (int j = 1; j <= 40; j++) {
+            for (int j = 1; j <= this.numberOfSteps; j++) {
                 int index = random.nextInt(4);
                 x += this.directions[index][0];
                 y += this.directions[index][1];
                 if (!isVisited.contains(x + "," + y)) {
                     isVisited.add(x + "," + y);
-                    double squareDistance = calculateDistanceBetweenPoints(0, 0, x, y);
+                    double squareDistance = distanceFromOrigin(x, y);
                     this.randomWalks.put(j, this.randomWalks.getOrDefault(j, 0.0)
                             + squareDistance);
                 } else break;
@@ -40,15 +42,11 @@ public class SelfAvoidingRandomWalk implements Callable<Map<Integer, Double>> {
 
     @Override
     public Map<Integer, Double> call() throws Exception {
-        pseudoRandomWalkWith40Step();
+        calculateEndToEndDistance();
         return this.randomWalks;
     }
 
-    public double calculateDistanceBetweenPoints(
-            double x1,
-            double y1,
-            double x2,
-            double y2) {
-        return Math.sqrt((y2 - y1) * (y2 - y1) + (x2 - x1) * (x2 - x1));
+    public double distanceFromOrigin(double x, double y) {
+        return Math.sqrt((x) * (x) + (y) * (y));
     }
 }
